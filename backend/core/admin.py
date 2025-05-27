@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ResearchArea, Publication, Award, Teaching
+from .models import ResearchArea, Publication, Award, Teaching, Experience
 
 @admin.register(ResearchArea)
 class ResearchAreaAdmin(admin.ModelAdmin):
@@ -24,3 +24,9 @@ class TeachingAdmin(admin.ModelAdmin):
     list_display = ('course_name', 'semester', 'year', 'created_at')
     search_fields = ('course_name', 'notes')
     list_filter = ('semester', 'year', 'created_at')
+
+@admin.register(Experience)
+class ExperienceAdmin(admin.ModelAdmin):
+    list_display = ('position', 'company', 'start_date', 'end_date', 'location')
+    search_fields = ('position', 'company', 'description', 'location')
+    list_filter = ('start_date', 'end_date', 'created_at')
