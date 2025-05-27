@@ -47,3 +47,25 @@ class Award(models.Model):
         ordering = ['-year', '-created_at']
         verbose_name = 'Award'
         verbose_name_plural = 'Awards'
+
+class Teaching(models.Model):
+    SEMESTER_CHOICES = [
+        ('FALL', 'Fall'),
+        ('SPRING', 'Spring'),
+        ('SUMMER', 'Summer'),
+    ]
+
+    course_name = models.CharField(max_length=200)
+    semester = models.CharField(max_length=6, choices=SEMESTER_CHOICES)
+    year = models.PositiveIntegerField()
+    notes = models.TextField(blank=True, help_text="Additional information about the course")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.course_name} ({self.semester} {self.year})"
+
+    class Meta:
+        ordering = ['-year', 'semester']
+        verbose_name = 'Teaching'
+        verbose_name_plural = 'Teaching'
