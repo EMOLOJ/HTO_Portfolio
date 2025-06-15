@@ -1,13 +1,19 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.exceptions import ObjectDoesNotExist
 from .models import ResearchArea, Publication, Award, Teaching, Education
 from .serializers import (
     ResearchAreaSerializer, PublicationSerializer, AwardSerializer,
     TeachingSerializer, EducationSerializer
 )
+import requests
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ResearchAreaViewSet(viewsets.ModelViewSet):
     """
@@ -15,6 +21,41 @@ class ResearchAreaViewSet(viewsets.ModelViewSet):
     """
     queryset = ResearchArea.objects.all()
     serializer_class = ResearchAreaSerializer
+
+    def list(self, request):
+        """List all research areas"""
+        research_areas = self.get_queryset()
+        serializer = self.get_serializer(research_areas, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """Get a single research area by ID"""
+        research_area = get_object_or_404(self.get_queryset(), pk=pk)
+        serializer = self.get_serializer(research_area)
+        return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        """Update a research area"""
+        research_area = get_object_or_404(self.get_queryset(), pk=pk)
+        serializer = self.get_serializer(research_area, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """Delete a research area"""
+        research_area = get_object_or_404(self.get_queryset(), pk=pk)
+        research_area.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def create(self, request):
+        """Create a new research area"""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def create_response(data=None, message=None, status_code=status.HTTP_200_OK):
     """
@@ -28,6 +69,7 @@ def create_response(data=None, message=None, status_code=status.HTTP_200_OK):
     return Response(response, status=status_code)
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def research_area_list(request):
     """
     List all research areas.
@@ -46,6 +88,7 @@ def research_area_list(request):
         )
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def research_area_detail(request, pk):
     """
     Retrieve a single research area.
@@ -69,6 +112,7 @@ def research_area_detail(request, pk):
         )
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def research_area_create(request):
     """
     Create a new research area.
@@ -94,6 +138,7 @@ def research_area_create(request):
         )
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def research_area_update(request, pk):
     """
     Update a research area.
@@ -124,6 +169,7 @@ def research_area_update(request, pk):
         )
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def research_area_delete(request, pk):
     """
     Delete a research area.
@@ -624,4 +670,94 @@ def education_delete(request, pk):
         return create_response(
             message=f"Error deleting education record: {str(e)}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sign_in(request):
+    """
+    Sign in with Supabase and get a JWT token
+    """
+    try:
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        if not email or not password:
+            return Response(
+                {'error': 'Email and password are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Call Supabase auth endpoint
+        response = requests.post(
+            f"{settings.SUPABASE_URL}/auth/v1/token?grant_type=password",
+            json={
+                'email': email,
+                'password': password
+            },
+            headers={
+                'apikey': settings.SUPABASE_KEY,
+                'Content-Type': 'application/json'
+            }
+        )
+
+        if response.status_code == 200:
+            return Response(response.json())
+        else:
+            logger.error(f"Supabase auth error: {response.text}")
+            return Response(
+                {'error': 'Authentication failed'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+    except Exception as e:
+        logger.error(f"Sign in error: {str(e)}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sign_up(request):
+    """
+    Sign up a new user with Supabase
+    """
+    try:
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        if not email or not password:
+            return Response(
+                {'error': 'Email and password are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Call Supabase signup endpoint
+        response = requests.post(
+            f"{settings.SUPABASE_URL}/auth/v1/signup",
+            json={
+                'email': email,
+                'password': password
+            },
+            headers={
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dG5ja2JnZHBxbWFyam1idHZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5OTA5MjksImV4cCI6MjA2NDU2NjkyOX0.NX_s2eMIbmIGR2ABHQe0-wL5WxE6vz6O275p4LODGW4',  # Use anon key
+                'Content-Type': 'application/json'
+            }
+        )
+
+        if response.status_code == 200:
+            return Response(response.json())
+        else:
+            logger.error(f"Supabase signup error: {response.text}")
+            return Response(
+                {'error': 'Signup failed'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

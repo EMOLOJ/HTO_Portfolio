@@ -1,0 +1,17 @@
+# Django settings
+DEBUG=True
+SECRET_KEY=django-insecure-@g$s(c_zc8=p&=18&6$pv^ij@o^ou-&&d+5*a*@j%=h62%r#r4
+
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=$up@Base@2025
+DB_HOST=db.uttnckbgdpqmarjmbtvj.supabase.co
+DB_PORT=5432
+
+
+# CORS settings
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+SUPABASE_URL=https://uttnckbgdpqmryjmbvj.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dG5ja2JnZHBxbWFyam1idHZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5OTA5MjksImV4cCI6MjA2NDU2NjkyOX0.NX_s2eMIbmIGR2ABHQe0-wL5WxE6vz6O275p4LODGW4
+SUPABASE_JWT_SECRET=your-jwt-secret-here  # Replace with your actual JWT secret from Supabase

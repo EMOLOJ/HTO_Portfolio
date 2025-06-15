@@ -129,6 +129,7 @@ Start: Use Supabase magic link login or email/password
 End: Confirm token is returned and user is created
 
 📈 Phase 4: Frontend Setup
+🎨 **Frontend Design Note**: The visual and layout inspiration for the frontend should follow the [al-folio "people" page](https://alshedivat.github.io/al-folio/people/). Use nature-themed colors and minimal, academic aesthetics in Tailwind.
 
 21. Initialize Next.js project with TypeScript
 
