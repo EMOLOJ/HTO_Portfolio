@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.exceptions import ObjectDoesNotExist
-from .models import ResearchArea, Publication, Award, Teaching, Education
+from .models import ResearchArea, Publication, Award, Teaching, Education, Experience
 from .serializers import (
     ResearchAreaSerializer, PublicationSerializer, AwardSerializer,
-    TeachingSerializer, EducationSerializer
+    TeachingSerializer, EducationSerializer, ExperienceSerializer
 )
 import requests
 from django.conf import settings
@@ -669,6 +669,131 @@ def education_delete(request, pk):
     except Exception as e:
         return create_response(
             message=f"Error deleting education record: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+# Experience Views
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def experience_list(request):
+    """
+    List all experiences.
+    """
+    try:
+        experiences = Experience.objects.all()
+        serializer = ExperienceSerializer(experiences, many=True)
+        return create_response(
+            data=serializer.data,
+            message="Experiences retrieved successfully"
+        )
+    except Exception as e:
+        return create_response(
+            message=f"Error retrieving experiences: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def experience_detail(request, pk):
+    """
+    Retrieve a single experience.
+    """
+    try:
+        experience = Experience.objects.get(pk=pk)
+        serializer = ExperienceSerializer(experience)
+        return create_response(
+            data=serializer.data,
+            message="Experience retrieved successfully"
+        )
+    except ObjectDoesNotExist:
+        return create_response(
+            message=f"Experience with id {pk} not found",
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return create_response(
+            message=f"Error retrieving experience: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def experience_create(request):
+    """
+    Create a new experience.
+    """
+    try:
+        serializer = ExperienceSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return create_response(
+                data=serializer.data,
+                message="Experience created successfully",
+                status_code=status.HTTP_201_CREATED
+            )
+        return create_response(
+            message="Invalid data provided",
+            data=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        return create_response(
+            message=f"Error creating experience: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def experience_update(request, pk):
+    """
+    Update an experience.
+    """
+    try:
+        experience = Experience.objects.get(pk=pk)
+        serializer = ExperienceSerializer(experience, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return create_response(
+                data=serializer.data,
+                message="Experience updated successfully"
+            )
+        return create_response(
+            message="Invalid data provided",
+            data=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    except ObjectDoesNotExist:
+        return create_response(
+            message=f"Experience with id {pk} not found",
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return create_response(
+            message=f"Error updating experience: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def experience_delete(request, pk):
+    """
+    Delete an experience.
+    """
+    try:
+        experience = Experience.objects.get(pk=pk)
+        experience.delete()
+        return create_response(
+            message="Experience deleted successfully",
+            status_code=status.HTTP_204_NO_CONTENT
+        )
+    except ObjectDoesNotExist:
+        return create_response(
+            message=f"Experience with id {pk} not found",
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return create_response(
+            message=f"Error deleting experience: {str(e)}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
