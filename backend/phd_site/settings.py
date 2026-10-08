@@ -15,7 +15,12 @@ import os
 from dotenv import load_dotenv
 import logging
 
-# Load environment variables
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables (try project dir, phd_site, then cwd)
+load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR / 'phd_site' / '.env')
 load_dotenv()
 
 # Debug logging for environment variables
@@ -23,20 +28,16 @@ logger = logging.getLogger(__name__)
 logger.debug(f"SUPABASE_URL: {os.getenv('SUPABASE_URL')}")
 logger.debug(f"SUPABASE_KEY length: {len(os.getenv('SUPABASE_KEY', ''))}")
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY') or 'dev-secret-key-change-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if os.getenv('ALLOWED_HOSTS') else ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -87,17 +88,25 @@ WSGI_APPLICATION = 'phd_site.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+# Use SQLite when DB_HOST is not set (e.g. local dev without Supabase) or USE_SQLITE=1
+if os.getenv('USE_SQLITE') == '1' or not os.getenv('DB_HOST'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
+        }
+    }
 
 
 # Password validation
@@ -136,13 +145,18 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (user uploads)
+MEDIA_URL = os.getenv('MEDIA_URL', 'media/')
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+_cors = os.getenv('CORS_ALLOWED_ORIGINS', '').strip()
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors.split(',') if o.strip()] or ['http://localhost:3000', 'http://127.0.0.1:3000']
 CORS_ALLOW_CREDENTIALS = True
 
 # Supabase settings
@@ -161,6 +175,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
 }
+
+# Professor access control (used for write endpoints)
+# Comma-separated list of allowed professor emails.
+PROFESSOR_EMAILS = [e.strip() for e in os.getenv('PROFESSOR_EMAILS', '').split(',') if e.strip()]
 
 # Logging configuration
 LOGGING = {

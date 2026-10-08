@@ -43,7 +43,8 @@ class SupabaseAuthentication(BaseAuthentication):
                 user = type('User', (), {
                     'is_authenticated': True,
                     'id': decoded.get('sub', 'anonymous'),
-                    'role': decoded.get('role', 'anonymous')
+                    'role': decoded.get('role', 'anonymous'),
+                    'email': decoded.get('email') or decoded.get('user_email') or '',
                 })
                 
                 return (user, token)

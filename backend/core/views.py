@@ -9,6 +9,7 @@ from .serializers import (
     ResearchAreaSerializer, PublicationSerializer, AwardSerializer,
     TeachingSerializer, EducationSerializer, ExperienceSerializer
 )
+from .permissions import IsProfessor, IsProfessorOrReadOnly
 import requests
 from django.conf import settings
 import logging
@@ -21,6 +22,7 @@ class ResearchAreaViewSet(viewsets.ModelViewSet):
     """
     queryset = ResearchArea.objects.all()
     serializer_class = ResearchAreaSerializer
+    permission_classes = [IsProfessorOrReadOnly]
 
     def list(self, request):
         """List all research areas"""
@@ -112,7 +114,7 @@ def research_area_detail(request, pk):
         )
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsProfessor])
 def research_area_create(request):
     """
     Create a new research area.
@@ -138,7 +140,7 @@ def research_area_create(request):
         )
 
 @api_view(['PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsProfessor])
 def research_area_update(request, pk):
     """
     Update a research area.
@@ -169,7 +171,7 @@ def research_area_update(request, pk):
         )
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsProfessor])
 def research_area_delete(request, pk):
     """
     Delete a research area.
@@ -235,6 +237,7 @@ def publication_detail(request, pk):
         )
 
 @api_view(['POST'])
+@permission_classes([IsProfessor])
 def publication_create(request):
     """
     Create a new publication.
@@ -260,6 +263,7 @@ def publication_create(request):
         )
 
 @api_view(['PUT'])
+@permission_classes([IsProfessor])
 def publication_update(request, pk):
     """
     Update a publication.
@@ -290,6 +294,7 @@ def publication_update(request, pk):
         )
 
 @api_view(['DELETE'])
+@permission_classes([IsProfessor])
 def publication_delete(request, pk):
     """
     Delete a publication.
@@ -355,6 +360,7 @@ def award_detail(request, pk):
         )
 
 @api_view(['POST'])
+@permission_classes([IsProfessor])
 def award_create(request):
     """
     Create a new award.
@@ -380,6 +386,7 @@ def award_create(request):
         )
 
 @api_view(['PUT'])
+@permission_classes([IsProfessor])
 def award_update(request, pk):
     """
     Update an award.
@@ -410,6 +417,7 @@ def award_update(request, pk):
         )
 
 @api_view(['DELETE'])
+@permission_classes([IsProfessor])
 def award_delete(request, pk):
     """
     Delete an award.
@@ -475,6 +483,7 @@ def teaching_detail(request, pk):
         )
 
 @api_view(['POST'])
+@permission_classes([IsProfessor])
 def teaching_create(request):
     """
     Create a new teaching record.
@@ -500,6 +509,7 @@ def teaching_create(request):
         )
 
 @api_view(['PUT'])
+@permission_classes([IsProfessor])
 def teaching_update(request, pk):
     """
     Update a teaching record.
@@ -530,6 +540,7 @@ def teaching_update(request, pk):
         )
 
 @api_view(['DELETE'])
+@permission_classes([IsProfessor])
 def teaching_delete(request, pk):
     """
     Delete a teaching record.
@@ -595,6 +606,7 @@ def education_detail(request, pk):
         )
 
 @api_view(['POST'])
+@permission_classes([IsProfessor])
 def education_create(request):
     """
     Create a new education record.
@@ -620,6 +632,7 @@ def education_create(request):
         )
 
 @api_view(['PUT'])
+@permission_classes([IsProfessor])
 def education_update(request, pk):
     """
     Update an education record.
@@ -650,6 +663,7 @@ def education_update(request, pk):
         )
 
 @api_view(['DELETE'])
+@permission_classes([IsProfessor])
 def education_delete(request, pk):
     """
     Delete an education record.
@@ -717,7 +731,7 @@ def experience_detail(request, pk):
         )
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsProfessor])
 def experience_create(request):
     """
     Create a new experience.
@@ -743,7 +757,7 @@ def experience_create(request):
         )
 
 @api_view(['PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsProfessor])
 def experience_update(request, pk):
     """
     Update an experience.
@@ -774,7 +788,7 @@ def experience_update(request, pk):
         )
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsProfessor])
 def experience_delete(request, pk):
     """
     Delete an experience.
@@ -866,7 +880,7 @@ def sign_up(request):
                 'password': password
             },
             headers={
-                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dG5ja2JnZHBxbWFyam1idHZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5OTA5MjksImV4cCI6MjA2NDU2NjkyOX0.NX_s2eMIbmIGR2ABHQe0-wL5WxE6vz6O275p4LODGW4',  # Use anon key
+                'apikey': settings.SUPABASE_KEY,
                 'Content-Type': 'application/json'
             }
         )
